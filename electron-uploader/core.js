@@ -417,9 +417,7 @@ async function runUpload({
         } catch (_) {}
 
         // wait until the new track title input is visible and editable
-        const titleTarget = page.locator(`input[name="track.title_${newIndex}"]`).first();
-        const titleFallback = titleInputs.nth(newIndex);
-        const titleNode = (await titleTarget.count()) > 0 ? titleTarget : titleFallback;
+        const titleNode = page.locator(`input[name="track.title_${newIndex}"]`).first();
         await titleNode.waitFor({ state: 'visible', timeout: 90000 });
 
         const artist = row.track_artist || '';
@@ -429,14 +427,13 @@ async function runUpload({
           title = title.slice(artist.length + 3);
         }
 
-        // Fill the newly created track fields explicitly by index (visible only)
+        // Fill title then artist for the same index while visible
         let titleFilled = false;
         try {
           await titleNode.fill(title);
           titleFilled = true;
         } catch (_) {}
 
-        // Direct DOM set fallback for title
         if (!titleFilled) {
           const titleSel = `input[name="track.title_${newIndex}"]`;
           const didTitle = await page.evaluate(
@@ -453,8 +450,7 @@ async function runUpload({
           if (!didTitle) log(`Missing title input: ${titleSel}`);
         }
 
-        // Fill artist exactly like title (indexed, visible, fill)
-        const artistNode = artistInputs.nth(newIndex);
+        const artistNode = page.locator(`input[name="track.artist_${newIndex}"]`).first();
         try {
           await artistNode.waitFor({ state: 'visible', timeout: 90000 });
           await artistNode.fill(artist);
