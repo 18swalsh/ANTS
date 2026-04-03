@@ -420,7 +420,7 @@ async function runUpload({
         const titleTarget = page.locator(`input[name="track.title_${newIndex}"]`).first();
         const titleFallback = titleInputs.nth(newIndex);
         const titleNode = (await titleTarget.count()) > 0 ? titleTarget : titleFallback;
-        await titleNode.waitFor({ state: 'visible', timeout: 90000 });
+        await titleNode.waitFor({ state: 'visible', timeout: 10000 });
 
         const artist = row.track_artist || '';
         let title = row.track_title || '';
@@ -454,7 +454,7 @@ async function runUpload({
         }
 
         // Debug: after title fill, wait 3s and log visible track.artist_* input
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(500);
         try {
           const visibleArtistName = await page.evaluate(() => {
             const els = Array.from(document.querySelectorAll('input[name^="track.artist_"]'));
@@ -470,7 +470,7 @@ async function runUpload({
         // Fill artist with enabled check + forced event dispatch + confirm value
         const artistNode = page.locator(`input[name="track.artist_${newIndex}"]`).first();
         try {
-          await artistNode.waitFor({ state: 'visible', timeout: 90000 });
+          await artistNode.waitFor({ state: 'visible', timeout: 10000 });
           // Wait until enabled/editable
           try {
             await page.waitForFunction(
@@ -479,7 +479,7 @@ async function runUpload({
                 return !!el && !el.disabled && !el.readOnly;
               },
               `input[name="track.artist_${newIndex}"]`,
-              { timeout: 5000 }
+              { timeout: 2000 }
             );
           } catch (_) {}
 
