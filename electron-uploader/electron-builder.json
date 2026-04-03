@@ -1,0 +1,25 @@
+﻿{
+  "appId": "com.ants.bandcampuploader",
+  "productName": "ANTS Bandcamp Uploader",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "**/*",
+    "../bandcamp-uploader/settings.example.json"
+  ],
+  "mac": {
+    "target": ["zip"],
+    "category": "public.app-category.music"
+  },
+  "win": {
+    "target": ["zip"]
+  },
+  "extraResources": [
+    {
+      "from": "node_modules/playwright-core/.local-browsers",
+      "to": "playwright-browsers",
+      "filter": ["**/*"]
+    }
+  ]
+}

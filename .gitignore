@@ -1,0 +1,22 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Node / Electron
+**/node_modules/
+**/dist/
+**/.cache/
+
+# Build artifacts / archives
+*.zip
+*.dmg
+*.exe
+*.mp4
+*token*.txt
+
+# Local staging
+_mac_build_stage/
+
+# Playwright downloads (if any outside node_modules)
+.playwright/

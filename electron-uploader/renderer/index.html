@@ -1,0 +1,57 @@
+﻿<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ANTS Bandcamp Uploader</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <h1>ANTS Bandcamp Uploader</h1>
+        <p>Upload a monthly compilation quickly and safely.</p>
+      </header>
+
+      <section class="card">
+        <div class="row">
+          <label>Export folder / ZIP / CSV</label>
+          <div class="input-row">
+            <input id="exportPath" placeholder="Select the Export folder or ZIP" />
+            <button id="browseExport" class="secondary">Browse</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Album title</label>
+          <input id="albumTitle" placeholder="Custom per month" />
+        </div>
+
+        <div class="row">
+          <label>Album art (optional)</label>
+          <div class="input-row">
+            <input id="albumArt" placeholder="Select image file" />
+            <button id="browseArt" class="secondary">Browse</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>Album edit URL</label>
+          <input id="albumUrl" value="https://americasnexttopsong.bandcamp.com/edit_album" />
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="start" class="primary">Start Upload</button>
+        <button id="cancel" class="secondary" disabled>Cancel</button>
+      </section>
+
+      <section class="status">
+        <h2>Status</h2>
+        <div id="statusLog" class="log"></div>
+      </section>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

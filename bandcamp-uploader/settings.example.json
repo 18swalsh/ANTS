@@ -1,0 +1,21 @@
+﻿{
+  "album_artist": "America's Next Top Song",
+  "track_title_format": "{artist} - {title}",
+  "description": "Monthly compilation albums, themed each month. For fun, for free, for you and me.",
+  "tags": ["world", "colorado"],
+  "pricing_mode": "free_name_your_price",
+  "allow_publish": false,
+  "selectors": {
+    "albumTitle": "",
+    "albumArtist": "",
+    "albumDescription": "",
+    "albumTags": "",
+    "albumArtInput": "",
+    "addTrackButton": "",
+    "trackTitle": "",
+    "trackArtist": "",
+    "trackFileInput": "",
+    "priceInput": "",
+    "payMoreCheckbox": ""
+  }
+}

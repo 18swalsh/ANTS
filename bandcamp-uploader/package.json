@@ -1,0 +1,20 @@
+{
+  "name": "bandcamp-uploader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright uploader for ANTS Bandcamp releases",
+  "bin": "uploader.js",
+  "scripts": {
+    "upload": "node uploader.js",
+    "build": "pkg . --targets node18-win-x64 --output dist/ANTS-Bandcamp-Uploader.exe"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "assets": []
+  }
+}

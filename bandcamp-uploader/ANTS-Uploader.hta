@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ANTS Bandcamp Uploader</title>
+  <hta:application
+    id="antsUploader"
+    applicationname="ANTS Bandcamp Uploader"
+    border="thin"
+    caption="yes"
+    maximizebutton="no"
+    minimizebutton="yes"
+    sysmenu="yes"
+    scroll="yes"
+    singleinstance="yes"
+    windowstate="normal"
+    resizable="yes"
+    width="520"
+    height="520"
+  />
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
+    h1 { font-size: 16px; margin: 0 0 10px; }
+    label { display: block; margin-top: 8px; font-weight: 600; }
+    input { width: 100%; padding: 6px; box-sizing: border-box; }
+    .row { display: flex; gap: 8px; }
+    .row input { flex: 1; }
+    button { margin-top: 10px; padding: 8px 12px; }
+    .muted { color: #666; font-size: 12px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>ANTS Bandcamp Uploader</h1>
+
+  <label>Export folder</label>
+  <div class="row">
+    <input id="exportFolder" placeholder="Folder that contains bandcamp_upload.csv" />
+    <button onclick="browseFolder()">Browse</button>
+  </div>
+
+  <label>Album title</label>
+  <input id="albumTitle" placeholder="Custom per month" />
+
+  <label>Album art (optional)</label>
+  <div class="row">
+    <input id="albumArt" placeholder="Path to image file" />
+    <button onclick="browseFile()">Browse</button>
+  </div>
+
+  <label>Album edit URL (optional)</label>
+  <input id="albumUrl" placeholder="Leave blank to navigate manually" />
+
+  <button onclick="runUploader()">Start Upload</button>
+  <div class="muted">This will open Bandcamp and wait for you to log in.</div>
+
+  <script type="text/javascript">
+    window.resizeTo(520, 520);
+    function getExePath() {
+      var path = window.location.pathname;
+      if (path.startsWith('/')) path = path.substring(1);
+      path = path.replace(/\//g, '\\');
+      path = decodeURIComponent(path);
+      return path.replace(/\\[^\\]+$/, '\\ANTS-Bandcamp-Uploader.exe');
+    }
+
+    function browseFolder() {
+      try {
+        var shell = new ActiveXObject('Shell.Application');
+        var folder = shell.BrowseForFolder(0, 'Select export folder', 0x0010);
+        if (folder) {
+          document.getElementById('exportFolder').value = folder.Self.Path;
+        }
+      } catch (e) {
+        alert('Folder picker failed. Please type the path.');
+      }
+    }
+
+    function browseFile() {
+      try {
+        var cd = new ActiveXObject('UserAccounts.CommonDialog');
+        cd.Filter = 'Image Files|*.jpg;*.jpeg;*.png;*.gif;*.webp|All Files|*.*';
+        cd.FilterIndex = 1;
+        if (cd.ShowOpen()) {
+          document.getElementById('albumArt').value = cd.FileName;
+        }
+      } catch (e) {
+        alert('File picker failed. Please type the path.');
+      }
+    }
+
+    function runUploader() {
+      var exportFolder = document.getElementById('exportFolder').value.trim();
+      var albumTitle = document.getElementById('albumTitle').value.trim();
+      var albumArt = document.getElementById('albumArt').value.trim();
+      var albumUrl = document.getElementById('albumUrl').value.trim();
+
+      if (!exportFolder || !albumTitle) {
+        alert('Export folder and album title are required.');
+        return;
+      }
+
+      var exe = getExePath();
+      var args = ' --export-folder "' + exportFolder + '"' +
+                 ' --album-title "' + albumTitle + '"';
+      if (albumArt) args += ' --album-art "' + albumArt + '"';
+      if (albumUrl) args += ' --album-url "' + albumUrl + '"';
+
+      try {
+        var wsh = new ActiveXObject('WScript.Shell');
+        wsh.Run('"' + exe + '"' + args, 0, false);
+        window.close();
+      } catch (e) {
+        alert('Failed to start uploader. ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>
