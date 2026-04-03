@@ -468,31 +468,30 @@ async function runUpload({
         } catch (_) {}
 
         // Fill artist with enabled check + forced event dispatch + confirm value
-        const artistNode = page.locator(`input[name="track.artist_${newIndex}"]`).first();
+        const artistNode = page.locator('input[name^="track.artist_"]').first();
         try {
           await artistNode.waitFor({ state: 'visible', timeout: 10000 });
           // Wait until enabled/editable
           try {
             await page.waitForFunction(
-              (sel) => {
-                const el = document.querySelector(sel);
+              () => {
+                const el = document.querySelector('input[name^="track.artist_"]');
                 return !!el && !el.disabled && !el.readOnly;
               },
-              `input[name="track.artist_${newIndex}"]`,
               { timeout: 2000 }
             );
           } catch (_) {}
 
           await artistNode.fill(artist);
           await page.evaluate(
-            ({ sel, val }) => {
-              const el = document.querySelector(sel);
+            ({ val }) => {
+              const el = document.querySelector('input[name^="track.artist_"]');
               if (!el) return;
               el.value = val;
               el.dispatchEvent(new Event('input', { bubbles: true }));
               el.dispatchEvent(new Event('change', { bubbles: true }));
             },
-            { sel: `input[name="track.artist_${newIndex}"]`, val: artist }
+            { val: artist }
           );
           const currentVal = await artistNode.inputValue().catch(() => '');
           log(`Artist value now: ${currentVal}`);
