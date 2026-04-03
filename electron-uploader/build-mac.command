@@ -6,6 +6,11 @@ cd "$(dirname "$0")"
 # Ensure common Node install paths are available for non-terminal runs
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
+# Log location
+LOG_DIR="$HOME/Library/Logs/ANTS Bandcamp Uploader"
+mkdir -p "$LOG_DIR"
+BUILD_LOG="$LOG_DIR/build.log"
+
 # Fix Windows ZIP backslash paths (renderer\index.html -> renderer/index.html)
 # 1) Top-level files named like "renderer\index.html"
 bad_files=$(find . -maxdepth 1 -type f -name 'renderer\\*' 2>/dev/null || true)
@@ -39,7 +44,22 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-npm install
-npm run pack:mac
+npm install >>"$BUILD_LOG" 2>&1
+if [ $? -ne 0 ]; then
+  osascript -e 'display dialog "Build failed during npm install.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
+  exit 1
+fi
 
-osascript -e 'display dialog "Mac build complete.\n\nUse the ZIP in dist (ANTS Bandcamp Uploader-*.zip). Do not run any older app outside the ZIP." buttons {"OK"} default button "OK"'
+npx playwright install chromium >>"$BUILD_LOG" 2>&1
+if [ $? -ne 0 ]; then
+  osascript -e 'display dialog "Build failed while installing Chromium.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
+  exit 1
+fi
+
+npm run pack:mac >>"$BUILD_LOG" 2>&1
+if [ $? -ne 0 ]; then
+  osascript -e 'display dialog "Build failed during packaging.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
+  exit 1
+fi
+
+osascript -e 'display dialog "Mac build complete.\n\nUse the ZIP in dist (ANTS Bandcamp Uploader-*.zip).\n\nLog: '"$BUILD_LOG"'" buttons {"OK"} default button "OK"'

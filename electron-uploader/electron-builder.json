@@ -10,7 +10,8 @@
     "!**/dist/**",
     "!**/*.zip",
     "!**/mac-build-package.zip",
-    "!**/_mac_build_stage/**"
+    "!**/_mac_build_stage/**",
+    "!**/node_modules/playwright/.local-browsers/**"
   ],
   "mac": {
     "target": ["zip"],
