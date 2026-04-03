@@ -18,7 +18,33 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'renderer', 'index.html'));
+  const uiPath = path.join(__dirname, 'renderer', 'index.html');
+  const loadUi = async () => {
+    try {
+      await mainWindow.loadFile(uiPath);
+    } catch (err) {
+      const message = `Could not load the app UI.\n\nPath: ${uiPath}\n\nError: ${err.message || err}`;
+      dialog.showErrorBox('ANTS Uploader Failed to Load', message);
+      const fallback = `<html><body style="font-family: Arial, sans-serif; padding: 24px; color:#111;">
+        <h2>ANTS Uploader failed to load</h2>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>Please reopen the app. If it persists, send this message to support.</p>
+      </body></html>`;
+      await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(fallback)}`);
+    }
+  };
+
+  mainWindow.webContents.on('did-fail-load', (_event, code, desc, url) => {
+    const message = `Failed to load ${url}\nError ${code}: ${desc}`;
+    dialog.showErrorBox('ANTS Uploader Failed to Load', message);
+  });
+
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    const message = `Renderer crashed (${details.reason}). Please reopen the app.`;
+    dialog.showErrorBox('ANTS Uploader Crashed', message);
+  });
+
+  loadUi();
 }
 
 app.whenReady().then(() => {
