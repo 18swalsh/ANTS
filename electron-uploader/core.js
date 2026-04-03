@@ -320,6 +320,8 @@ async function runUpload({
 
   status(`Uploading ${rows.length} tracks...`);
 
+  let uploadedCount = 0;
+  let allUploadsComplete = false;
   for (let i = 0; i < rows.length; i++) {
     ensureNotAborted(signal);
     const row = rows[i];
@@ -378,15 +380,13 @@ async function runUpload({
               return list && list.innerText.toLowerCase().includes(name);
             },
             baseName,
-            { timeout: 120000 }
+            { timeout: 180000 }
           );
-        } catch (_) {
-          // fall back to count-based detection
-          await page.waitForFunction(
-            (count) => document.querySelectorAll('input[name^="track.title_"], input[name^="track.track_title_"], input[name^="track_title_"]').length > count,
-            beforeCount,
-            { timeout: 120000 }
-          );
+        } catch (err) {
+          const shotPath = path.join(resolvedExport, `bandcamp_error_track_${i + 1}.png`);
+          try { await page.screenshot({ path: shotPath, fullPage: true }); } catch (_) {}
+          log(`Track file did not appear in list: ${fileName}`);
+          throw new Error(`Upload failed: ${fileName} did not appear in track list`);
         }
 
         // Ensure the specific track row is done processing
@@ -426,6 +426,7 @@ async function runUpload({
         }
 
         log(`Track added: ${title} / ${artist}`);
+        uploadedCount += 1;
         success = true;
       } catch (err) {
         log(`Track ${i + 1} failed: ${err.message}`);
@@ -439,7 +440,11 @@ async function runUpload({
     }
   }
 
-  await waitForAllUploads(page, rows, log);
+  allUploadsComplete = await waitForAllUploads(page, rows, log);
+  if (!allUploadsComplete || uploadedCount !== rows.length) {
+    status('Upload incomplete — draft not saved.');
+    throw new Error('Upload incomplete — some tracks did not finish.');
+  }
   status('All tracks processed.');
   } catch (err) {
     try {
@@ -449,18 +454,19 @@ async function runUpload({
     } catch (_) {}
     throw err;
   } finally {
-    try {
-      await waitForAllUploads(page, rows, log);
-    } catch (_) {}
-    // Save draft if possible
-    try {
-      const saveDraft = page.locator('a.button.save-draft, a.button.save-draft.show-when-dirty, a.save-draft');
-      if (await saveDraft.count() > 0) {
-        try { await saveDraft.first().waitFor({ state: 'visible', timeout: 60000 }); } catch (_) {}
-        await saveDraft.first().click();
-        log('Clicked Save Album Draft.');
-      }
-    } catch (_) {}
+    // Save draft only if all uploads completed
+    if (allUploadsComplete && uploadedCount === rows.length) {
+      try {
+        const saveDraft = page.locator('a.button.save-draft, a.button.save-draft.show-when-dirty, a.save-draft');
+        if (await saveDraft.count() > 0) {
+          try { await saveDraft.first().waitFor({ state: 'visible', timeout: 60000 }); } catch (_) {}
+          await saveDraft.first().click();
+          log('Clicked Save Album Draft.');
+        }
+      } catch (_) {}
+    } else {
+      log('Skipping Save Draft because uploads were incomplete.');
+    }
     await browser.close();
   }
 }
