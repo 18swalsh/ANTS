@@ -5,7 +5,6 @@ const albumUrl = document.getElementById('albumUrl');
 const statusLog = document.getElementById('statusLog');
 const startBtn = document.getElementById('start');
 const cancelBtn = document.getElementById('cancel');
-const openLogsBtn = document.getElementById('openLogs');
 
 function appendStatus(message) {
   const time = new Date().toLocaleTimeString();
@@ -66,6 +65,5 @@ async function cancelUpload() {
 
 startBtn.addEventListener('click', startUpload);
 cancelBtn.addEventListener('click', cancelUpload);
-openLogsBtn.addEventListener('click', () => window.ants.openLog());
 document.getElementById('browseExport').addEventListener('click', chooseExport);
 document.getElementById('browseArt').addEventListener('click', chooseArt);

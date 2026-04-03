@@ -5,6 +5,5 @@ contextBridge.exposeInMainWorld('ants', {
   selectArt: () => ipcRenderer.invoke('select-art'),
   startUpload: (payload) => ipcRenderer.invoke('start-upload', payload),
   cancelUpload: () => ipcRenderer.invoke('cancel-upload'),
-  openLog: (logPath) => ipcRenderer.invoke('open-log', logPath),
   onStatus: (handler) => ipcRenderer.on('status', (_evt, msg) => handler(msg))
 });
