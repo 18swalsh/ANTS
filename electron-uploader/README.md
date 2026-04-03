@@ -14,6 +14,13 @@ Cross-platform GUI for the ANTS Bandcamp upload flow.
 npm start
 ```
 
+### Windows Dev Shortcut
+Run:
+```
+run-dev.cmd
+```
+This launches the app from source without packaging.
+
 ## Build (Unsigned)
 ### macOS
 ```
