@@ -39,6 +39,28 @@ if [ -n "$bad_inside" ]; then
   done <<< "$bad_inside"
 fi
 
+# Fix Windows ZIP backslash paths for assets (assets\ants_logo.png -> assets/ants_logo.png)
+bad_assets=$(find . -maxdepth 1 -type f -name 'assets\\*' 2>/dev/null || true)
+if [ -n "$bad_assets" ]; then
+  mkdir -p assets
+  while IFS= read -r f; do
+    base="${f##*\\}"
+    if [ -n "$base" ]; then
+      mv "$f" "assets/$base"
+    fi
+  done <<< "$bad_assets"
+fi
+
+bad_assets_inside=$(find assets -maxdepth 1 -type f -name 'assets\\*' 2>/dev/null || true)
+if [ -n "$bad_assets_inside" ]; then
+  while IFS= read -r f; do
+    base="${f##*\\}"
+    if [ -n "$base" ]; then
+      mv "$f" "assets/$base"
+    fi
+  done <<< "$bad_assets_inside"
+fi
+
 if [ -d "dist" ]; then
   rm -rf "dist"
 fi
