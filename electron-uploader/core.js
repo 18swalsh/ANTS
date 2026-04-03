@@ -170,6 +170,8 @@ async function runUpload({
   status('Initializing...');
   log('Uploader started.');
 
+  log(`PLAYWRIGHT_BROWSERS_PATH=${process.env.PLAYWRIGHT_BROWSERS_PATH || ''}`);
+
   const resolvedExport = await ensureExportFolder(exportPath);
   if (!resolvedExport) throw new Error('Export path is invalid or missing bandcamp_upload.csv');
 
@@ -196,7 +198,15 @@ async function runUpload({
       process.env.PLAYWRIGHT_BROWSERS_PATH = '0';
     }
   }
-  const browser = await launchBrowser();
+  let browser;
+  try {
+    log('Launching browser...');
+    browser = await launchBrowser();
+    log('Browser launched.');
+  } catch (err) {
+    log(`Browser launch failed: ${err.message || err}`);
+    throw err;
+  }
   const context = await browser.newContext({ viewport: null });
   const page = await context.newPage();
 

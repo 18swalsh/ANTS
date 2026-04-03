@@ -1,10 +1,18 @@
 ﻿const path = require('path');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const os = require('os');
+const fs = require('fs');
 
 let mainWindow = null;
 let currentAbortController = null;
 let fallbackLogPath = '';
+
+function writeFallbackLog(message) {
+  if (!fallbackLogPath) return;
+  try {
+    fs.appendFileSync(fallbackLogPath, `[${new Date().toISOString()}] ${message}\n`, 'utf8');
+  } catch (_) {}
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -55,9 +63,9 @@ app.whenReady().then(() => {
     const homeDir = os.homedir && os.homedir();
     if (homeDir) {
       const logDir = path.join(homeDir, 'Library', 'Logs', 'ANTS Bandcamp Uploader');
-      require('fs').mkdirSync(logDir, { recursive: true });
+      fs.mkdirSync(logDir, { recursive: true });
       fallbackLogPath = path.join(logDir, 'bandcamp_uploader_log.txt');
-      require('fs').appendFileSync(fallbackLogPath, `[${new Date().toISOString()}] App started.\n`, 'utf8');
+      writeFallbackLog('App started.');
     }
   } catch (_) {}
 
@@ -102,11 +110,13 @@ ipcMain.handle('start-upload', async (event, payload) => {
   const corePath = path.join(__dirname, 'core.js');
   const { runUpload } = require(corePath);
   currentAbortController = new AbortController();
+  writeFallbackLog('Start upload invoked.');
 
   const sendStatus = (msg) => {
     if (mainWindow && mainWindow.webContents) {
       mainWindow.webContents.send('status', msg);
     }
+    writeFallbackLog(`STATUS: ${msg}`);
   };
 
   try {
@@ -120,6 +130,7 @@ ipcMain.handle('start-upload', async (event, payload) => {
     return { ok: true };
   } catch (err) {
     sendStatus(`Error: ${err.message || err}`);
+    writeFallbackLog(`ERROR: ${err.message || err}`);
     try {
       dialog.showErrorBox('ANTS Uploader Error', String(err.message || err));
     } catch (_) {}
@@ -138,6 +149,11 @@ ipcMain.handle('open-log', async (event, logPath) => {
   const target = logPath || fallbackLogPath;
   if (!target) return { ok: false };
   await shellOpen(target);
+  return { ok: true };
+});
+
+ipcMain.handle('renderer-log', async (_event, msg) => {
+  if (msg) writeFallbackLog(`RENDERER: ${msg}`);
   return { ok: true };
 });
 

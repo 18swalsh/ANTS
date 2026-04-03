@@ -13,6 +13,12 @@ function appendStatus(message) {
 }
 
 window.ants.onStatus((msg) => appendStatus(msg));
+window.addEventListener('error', (event) => {
+  try { window.ants.logToMain(`Window error: ${event.message}`); } catch (_) {}
+});
+window.addEventListener('unhandledrejection', (event) => {
+  try { window.ants.logToMain(`Unhandled rejection: ${event.reason}`); } catch (_) {}
+});
 
 // Defaults for faster testing
 exportPath.value = 'C:\\\\Users\\\\18swa\\\\Downloads\\\\Export-20260403T044616Z-3-001\\\\Export';
@@ -41,17 +47,23 @@ async function startUpload() {
   statusLog.textContent = '';
 
   appendStatus('Starting upload...');
-  const result = await window.ants.startUpload({
-    exportPath: exportPath.value,
-    albumTitle: albumTitle.value,
-    albumArtPath: albumArt.value,
-    albumUrl: albumUrl.value
-  });
+  try {
+    await window.ants.logToMain('Start Upload clicked.');
+    const result = await window.ants.startUpload({
+      exportPath: exportPath.value,
+      albumTitle: albumTitle.value,
+      albumArtPath: albumArt.value,
+      albumUrl: albumUrl.value
+    });
 
-  if (result && result.ok) {
-    appendStatus('Completed.');
-  } else if (result && result.error) {
-    appendStatus(`Failed: ${result.error}`);
+    if (result && result.ok) {
+      appendStatus('Completed.');
+    } else if (result && result.error) {
+      appendStatus(`Failed: ${result.error}`);
+    }
+  } catch (err) {
+    appendStatus(`Failed: ${err.message || err}`);
+    try { await window.ants.logToMain(`Start Upload error: ${err.message || err}`); } catch (_) {}
   }
 
   startBtn.disabled = false;
