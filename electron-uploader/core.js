@@ -457,6 +457,8 @@ async function runUpload({
     // Save draft only if all uploads completed
     if (allUploadsComplete && uploadedCount === rows.length) {
       try {
+        log('Waiting 10 seconds before saving draft...');
+        await page.waitForTimeout(10000);
         const saveDraft = page.locator('a.button.save-draft, a.button.save-draft.show-when-dirty, a.save-draft');
         if (await saveDraft.count() > 0) {
           try { await saveDraft.first().waitFor({ state: 'visible', timeout: 60000 }); } catch (_) {}
