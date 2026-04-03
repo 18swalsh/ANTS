@@ -453,32 +453,21 @@ async function runUpload({
           if (!didTitle) log(`Missing title input: ${titleSel}`);
         }
 
-        // Artist input only exists for the currently selected track panel.
-        // After selecting the row, fill the visible artist input (no index).
-        let artistFilled = false;
-        try {
-          const artistVisible = page.locator('input[name^="track.artist_"]').first();
-          if (await artistVisible.count() > 0) {
-            await artistVisible.fill(artist);
-            artistFilled = true;
-          }
-        } catch (_) {}
-
-        if (!artistFilled) {
-          const didArtist = await page.evaluate(
-            ({ val }) => {
-              const el = document.querySelector('input[name^="track.artist_"]');
-              if (!el) return false;
-              el.value = val;
-              el.dispatchEvent(new Event('input', { bubbles: true }));
-              el.dispatchEvent(new Event('change', { bubbles: true }));
-              return true;
-            },
-            { val: artist }
-          );
-          if (!didArtist) {
-            log(`Missing artist input for selected track (index ${newIndex}) file ${fileName}`);
-          }
+        // Direct DOM set for artist (more reliable than fill)
+        const artistSel = `input[name="track.artist_${newIndex}"]`;
+        const didArtist = await page.evaluate(
+          ({ sel, val }) => {
+            const el = document.querySelector(sel);
+            if (!el) return false;
+            el.value = val;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          },
+          { sel: artistSel, val: artist }
+        );
+        if (!didArtist) {
+          log(`Missing artist input: ${artistSel} for file ${fileName}`);
         }
         const priceTarget = priceInputs.nth(newIndex);
         if (await priceTarget.count() > 0) {
