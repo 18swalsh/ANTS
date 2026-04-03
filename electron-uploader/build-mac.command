@@ -7,15 +7,27 @@ cd "$(dirname "$0")"
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
 # Fix Windows ZIP backslash paths (renderer\index.html -> renderer/index.html)
+# 1) Top-level files named like "renderer\index.html"
 bad_files=$(find . -maxdepth 1 -type f -name 'renderer\\*' 2>/dev/null || true)
 if [ -n "$bad_files" ]; then
   mkdir -p renderer
   while IFS= read -r f; do
-    base=$(printf "%s" "$f" | sed 's/.*\\\\//')
+    base="${f##*\\}"
     if [ -n "$base" ]; then
       mv "$f" "renderer/$base"
     fi
   done <<< "$bad_files"
+fi
+
+# 2) Files already inside renderer folder but still named like "renderer\index.html"
+bad_inside=$(find renderer -maxdepth 1 -type f -name 'renderer\\*' 2>/dev/null || true)
+if [ -n "$bad_inside" ]; then
+  while IFS= read -r f; do
+    base="${f##*\\}"
+    if [ -n "$base" ]; then
+      mv "$f" "renderer/$base"
+    fi
+  done <<< "$bad_inside"
 fi
 
 if [ -d "dist" ]; then
