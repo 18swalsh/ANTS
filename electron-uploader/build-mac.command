@@ -6,6 +6,18 @@ cd "$(dirname "$0")"
 # Ensure common Node install paths are available for non-terminal runs
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 
+# Fix Windows ZIP backslash paths (renderer\index.html -> renderer/index.html)
+bad_files=$(find . -maxdepth 1 -type f -name 'renderer\\*' 2>/dev/null || true)
+if [ -n "$bad_files" ]; then
+  mkdir -p renderer
+  while IFS= read -r f; do
+    base=$(printf "%s" "$f" | sed 's/.*\\\\//')
+    if [ -n "$base" ]; then
+      mv "$f" "renderer/$base"
+    fi
+  done <<< "$bad_files"
+fi
+
 if [ -d "dist" ]; then
   rm -rf "dist"
 fi
