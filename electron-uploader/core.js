@@ -453,33 +453,13 @@ async function runUpload({
           if (!didTitle) log(`Missing title input: ${titleSel}`);
         }
 
-        // Fill artist for the same index immediately after title
-        const artistTargetExact = page.locator(`input[name="track.artist_${newIndex}"]`).first();
-        const artistTarget = (await artistTargetExact.count()) > 0 ? artistTargetExact : artistInputs.nth(newIndex);
-        let artistFilled = false;
+        // Fill artist exactly like title (indexed, visible, fill)
+        const artistNode = artistInputs.nth(newIndex);
         try {
-          if (await artistTarget.count() > 0) {
-            await artistTarget.fill(artist);
-            artistFilled = true;
-          }
-        } catch (_) {}
-
-        if (!artistFilled) {
-          const artistSel = `input[name="track.artist_${newIndex}"]`;
-          const didArtist = await page.evaluate(
-            ({ sel, val }) => {
-              const el = document.querySelector(sel);
-              if (!el) return false;
-              el.value = val;
-              el.dispatchEvent(new Event('input', { bubbles: true }));
-              el.dispatchEvent(new Event('change', { bubbles: true }));
-              return true;
-            },
-            { sel: artistSel, val: artist }
-          );
-          if (!didArtist) {
-            log(`Missing artist input: ${artistSel} for file ${fileName}`);
-          }
+          await artistNode.waitFor({ state: 'visible', timeout: 90000 });
+          await artistNode.fill(artist);
+        } catch (_) {
+          log(`Artist input not visible for index ${newIndex} (file ${fileName})`);
         }
         const priceTarget = priceInputs.nth(newIndex);
         if (await priceTarget.count() > 0) {
