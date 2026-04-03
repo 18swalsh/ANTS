@@ -1,8 +1,10 @@
 ﻿const path = require('path');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const os = require('os');
 
 let mainWindow = null;
 let currentAbortController = null;
+let fallbackLogPath = '';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -48,6 +50,17 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Create a fallback log file as early as possible on macOS
+  try {
+    const homeDir = os.homedir && os.homedir();
+    if (homeDir) {
+      const logDir = path.join(homeDir, 'Library', 'Logs', 'ANTS Bandcamp Uploader');
+      require('fs').mkdirSync(logDir, { recursive: true });
+      fallbackLogPath = path.join(logDir, 'bandcamp_uploader_log.txt');
+      require('fs').appendFileSync(fallbackLogPath, `[${new Date().toISOString()}] App started.\n`, 'utf8');
+    }
+  } catch (_) {}
+
   createWindow();
 
   app.on('activate', () => {
@@ -122,8 +135,9 @@ ipcMain.handle('cancel-upload', async () => {
 });
 
 ipcMain.handle('open-log', async (event, logPath) => {
-  if (!logPath) return { ok: false };
-  await shellOpen(logPath);
+  const target = logPath || fallbackLogPath;
+  if (!target) return { ok: false };
+  await shellOpen(target);
   return { ok: true };
 });
 

@@ -150,16 +150,7 @@ async function runUpload({
     if (onStatus) onStatus(msg);
   };
 
-  const resolvedExport = await ensureExportFolder(exportPath);
-  if (!resolvedExport) throw new Error('Export path is invalid or missing bandcamp_upload.csv');
-
-  const csvPath = path.join(resolvedExport, 'bandcamp_upload.csv');
-  if (!fs.existsSync(csvPath)) throw new Error('bandcamp_upload.csv not found');
-
   const loggers = [];
-  const logPath = path.join(resolvedExport, 'bandcamp_uploader_log.txt');
-  loggers.push(createLogger(logPath));
-
   const tempLogPath = path.join(os.tmpdir(), 'bandcamp_uploader_last_log.txt');
   loggers.push(createLogger(tempLogPath));
 
@@ -178,6 +169,19 @@ async function runUpload({
   const log = createMultiLogger(loggers);
   status('Initializing...');
   log('Uploader started.');
+
+  const resolvedExport = await ensureExportFolder(exportPath);
+  if (!resolvedExport) throw new Error('Export path is invalid or missing bandcamp_upload.csv');
+
+  const csvPath = path.join(resolvedExport, 'bandcamp_upload.csv');
+  if (!fs.existsSync(csvPath)) throw new Error('bandcamp_upload.csv not found');
+
+  const logPath = path.join(resolvedExport, 'bandcamp_uploader_log.txt');
+  try {
+    loggers.push(createLogger(logPath));
+  } catch (_) {
+    // ignore
+  }
 
   const rows = parseCsv(csvPath);
   if (rows.length === 0) throw new Error('No tracks found in bandcamp_upload.csv');
