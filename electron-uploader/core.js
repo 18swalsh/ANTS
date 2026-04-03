@@ -453,6 +453,20 @@ async function runUpload({
           if (!didTitle) log(`Missing title input: ${titleSel}`);
         }
 
+        // Debug: after title fill, wait 3s and log visible track.artist_* input
+        await page.waitForTimeout(3000);
+        try {
+          const visibleArtistName = await page.evaluate(() => {
+            const els = Array.from(document.querySelectorAll('input[name^="track.artist_"]'));
+            const visible = els.find((el) => {
+              const style = window.getComputedStyle(el);
+              return style && style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+            });
+            return visible ? visible.getAttribute('name') : '';
+          });
+          log(`Visible artist input after title: ${visibleArtistName || 'NONE'}`);
+        } catch (_) {}
+
         // Fill artist exactly like title (indexed, visible, fill)
         const artistNode = artistInputs.nth(newIndex);
         try {
