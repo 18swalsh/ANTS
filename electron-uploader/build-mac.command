@@ -54,6 +54,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Generate app icons (icns)
+npx icon-gen -i assets/ants_logo.png -o build/icons --icns --icns-name ants >>"$BUILD_LOG" 2>&1
+if [ $? -ne 0 ]; then
+  osascript -e 'display dialog "Build failed while generating icons.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
+  exit 1
+fi
+
 # Ensure no leftover Playwright browsers (prevents symlink copy errors)
 rm -rf "node_modules/playwright/.local-browsers" "node_modules/playwright-core/.local-browsers"
 

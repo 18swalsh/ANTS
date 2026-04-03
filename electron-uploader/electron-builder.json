@@ -17,10 +17,12 @@
   ],
   "mac": {
     "target": ["zip"],
+    "icon": "build/icons/ants.icns",
     "category": "public.app-category.music"
   },
   "win": {
-    "target": ["zip"]
+    "target": ["zip"],
+    "icon": "build/icons/ants.ico"
   },
   "extraResources": []
 }
