@@ -408,11 +408,11 @@ async function runUpload({
         const afterCount = await titleInputs.count();
         const newIndex = Math.max(0, afterCount - 1);
 
-        // Select the newly added track row to ensure right-panel inputs are active
+        // Select the newly added track row by index to ensure right-panel inputs are active
         try {
-          const trackRow = page.locator('.tracks li.track', { hasText: fileName });
-          if (await trackRow.count() > 0) {
-            await trackRow.first().click();
+          const trackRowByIndex = page.locator('.tracks li.track').nth(newIndex);
+          if (await trackRowByIndex.count() > 0) {
+            await trackRowByIndex.click();
           }
         } catch (_) {}
 
@@ -430,11 +430,44 @@ async function runUpload({
         }
 
         // Fill the newly created track fields explicitly by index (visible only)
-        await titleNode.fill(title);
-        const artistTargetExact = page.locator(`input[name="track.artist_${newIndex}"]`).first();
-        const artistTarget = (await artistTargetExact.count()) > 0 ? artistTargetExact : artistInputs.nth(newIndex);
-        if (await artistTarget.count() > 0) {
-          await artistTarget.fill(artist);
+        let titleFilled = false;
+        try {
+          await titleNode.fill(title);
+          titleFilled = true;
+        } catch (_) {}
+
+        // Direct DOM set fallback for title
+        if (!titleFilled) {
+          const titleSel = `input[name="track.title_${newIndex}"]`;
+          const didTitle = await page.evaluate(
+            ({ sel, val }) => {
+              const el = document.querySelector(sel);
+              if (!el) return false;
+              el.value = val;
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+              return true;
+            },
+            { sel: titleSel, val: title }
+          );
+          if (!didTitle) log(`Missing title input: ${titleSel}`);
+        }
+
+        // Direct DOM set for artist (more reliable than fill)
+        const artistSel = `input[name="track.artist_${newIndex}"]`;
+        const didArtist = await page.evaluate(
+          ({ sel, val }) => {
+            const el = document.querySelector(sel);
+            if (!el) return false;
+            el.value = val;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          },
+          { sel: artistSel, val: artist }
+        );
+        if (!didArtist) {
+          log(`Missing artist input: ${artistSel} for file ${fileName}`);
         }
         const priceTarget = priceInputs.nth(newIndex);
         if (await priceTarget.count() > 0) {
