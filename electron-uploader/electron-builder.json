@@ -5,8 +5,11 @@
     "output": "dist"
   },
   "files": [
-    "**/*",
-    "../bandcamp-uploader/settings.example.json"
+    "main.js",
+    "preload.js",
+    "core.js",
+    "package.json",
+    "renderer/**/*"
   ],
   "mac": {
     "target": ["zip"],
