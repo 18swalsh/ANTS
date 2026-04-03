@@ -11,6 +11,9 @@ LOG_DIR="$HOME/Library/Logs/ANTS Bandcamp Uploader"
 mkdir -p "$LOG_DIR"
 BUILD_LOG="$LOG_DIR/build.log"
 
+# Skip Playwright browser download during build (we download on first run)
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
 # Fix Windows ZIP backslash paths (renderer\index.html -> renderer/index.html)
 # 1) Top-level files named like "renderer\index.html"
 bad_files=$(find . -maxdepth 1 -type f -name 'renderer\\*' 2>/dev/null || true)
@@ -49,6 +52,9 @@ if [ $? -ne 0 ]; then
   osascript -e 'display dialog "Build failed during npm install.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
   exit 1
 fi
+
+# Ensure no leftover Playwright browsers (prevents symlink copy errors)
+rm -rf "node_modules/playwright/.local-browsers"
 
 npm run pack:mac >>"$BUILD_LOG" 2>&1
 if [ $? -ne 0 ]; then
