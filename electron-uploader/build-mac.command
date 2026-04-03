@@ -13,6 +13,7 @@ BUILD_LOG="$LOG_DIR/build.log"
 
 # Skip Playwright browser download during build (we download on first run)
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+export npm_config_playwright_skip_browser_download=1
 
 # Fix Windows ZIP backslash paths (renderer\index.html -> renderer/index.html)
 # 1) Top-level files named like "renderer\index.html"
@@ -47,14 +48,14 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 1
 fi
 
-npm install >>"$BUILD_LOG" 2>&1
+npm install --ignore-scripts >>"$BUILD_LOG" 2>&1
 if [ $? -ne 0 ]; then
   osascript -e 'display dialog "Build failed during npm install.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
   exit 1
 fi
 
 # Ensure no leftover Playwright browsers (prevents symlink copy errors)
-rm -rf "node_modules/playwright/.local-browsers"
+rm -rf "node_modules/playwright/.local-browsers" "node_modules/playwright-core/.local-browsers"
 
 npm run pack:mac >>"$BUILD_LOG" 2>&1
 if [ $? -ne 0 ]; then

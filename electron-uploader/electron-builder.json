@@ -12,6 +12,7 @@
     "!**/mac-build-package.zip",
     "!**/_mac_build_stage/**",
     "!**/node_modules/playwright/.local-browsers/**",
+    "!**/node_modules/playwright-core/.local-browsers/**",
     "!**/playwright-browsers/**"
   ],
   "mac": {
