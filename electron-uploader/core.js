@@ -408,9 +408,19 @@ async function runUpload({
         const afterCount = await titleInputs.count();
         const newIndex = Math.max(0, afterCount - 1);
 
+        // Select the newly added track row to ensure right-panel inputs are active
+        try {
+          const trackRow = page.locator('.tracks li.track', { hasText: fileName });
+          if (await trackRow.count() > 0) {
+            await trackRow.first().click();
+          }
+        } catch (_) {}
+
         // wait until the new track title input is visible and editable
-        const titleTarget = titleInputs.nth(newIndex);
-        await titleTarget.waitFor({ state: 'visible', timeout: 90000 });
+        const titleTarget = page.locator(`input[name="track.title_${newIndex}"]`).first();
+        const titleFallback = titleInputs.nth(newIndex);
+        const titleNode = (await titleTarget.count()) > 0 ? titleTarget : titleFallback;
+        await titleNode.waitFor({ state: 'visible', timeout: 90000 });
 
         const artist = row.track_artist || '';
         let title = row.track_title || '';
@@ -420,8 +430,9 @@ async function runUpload({
         }
 
         // Fill the newly created track fields explicitly by index (visible only)
-        await titleTarget.fill(title);
-        const artistTarget = artistInputs.nth(newIndex);
+        await titleNode.fill(title);
+        const artistTargetExact = page.locator(`input[name="track.artist_${newIndex}"]`).first();
+        const artistTarget = (await artistTargetExact.count()) > 0 ? artistTargetExact : artistInputs.nth(newIndex);
         if (await artistTarget.count() > 0) {
           await artistTarget.fill(artist);
         }
