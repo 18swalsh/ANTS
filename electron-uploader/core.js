@@ -156,9 +156,26 @@ async function runUpload({
   const csvPath = path.join(resolvedExport, 'bandcamp_upload.csv');
   if (!fs.existsSync(csvPath)) throw new Error('bandcamp_upload.csv not found');
 
+  const loggers = [];
   const logPath = path.join(resolvedExport, 'bandcamp_uploader_log.txt');
+  loggers.push(createLogger(logPath));
+
   const tempLogPath = path.join(os.tmpdir(), 'bandcamp_uploader_last_log.txt');
-  const log = createMultiLogger([createLogger(logPath), createLogger(tempLogPath)]);
+  loggers.push(createLogger(tempLogPath));
+
+  const homeDir = os.homedir && os.homedir();
+  if (homeDir) {
+    const macLogsDir = path.join(homeDir, 'Library', 'Logs', 'ANTS Bandcamp Uploader');
+    try {
+      fs.mkdirSync(macLogsDir, { recursive: true });
+      const macLogPath = path.join(macLogsDir, 'bandcamp_uploader_log.txt');
+      loggers.push(createLogger(macLogPath));
+    } catch (_) {
+      // ignore
+    }
+  }
+
+  const log = createMultiLogger(loggers);
   status('Initializing...');
   log('Uploader started.');
 
@@ -168,7 +185,12 @@ async function runUpload({
   const mergedSettings = { ...loadSettings(settingsPath), ...(settings || {}) };
   // Ensure Playwright uses bundled browsers when packaged
   if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
-    process.env.PLAYWRIGHT_BROWSERS_PATH = '0';
+    const resourcesPath = process.resourcesPath || '';
+    if (resourcesPath && resourcesPath.includes('.app')) {
+      process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(resourcesPath, 'playwright-browsers');
+    } else {
+      process.env.PLAYWRIGHT_BROWSERS_PATH = '0';
+    }
   }
   const browser = await launchBrowser();
   const context = await browser.newContext({ viewport: null });

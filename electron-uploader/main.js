@@ -97,6 +97,7 @@ ipcMain.handle('start-upload', async (event, payload) => {
   };
 
   try {
+    sendStatus('Launching browser...');
     await runUpload({
       ...payload,
       signal: currentAbortController.signal,
@@ -106,6 +107,9 @@ ipcMain.handle('start-upload', async (event, payload) => {
     return { ok: true };
   } catch (err) {
     sendStatus(`Error: ${err.message || err}`);
+    try {
+      dialog.showErrorBox('ANTS Uploader Error', String(err.message || err));
+    } catch (_) {}
     return { ok: false, error: String(err) };
   } finally {
     currentAbortController = null;
