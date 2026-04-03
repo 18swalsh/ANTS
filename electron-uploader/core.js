@@ -146,6 +146,8 @@ async function runUpload({
   signal,
   onStatus
 }) {
+  let uploadedCount = 0;
+  let allUploadsComplete = false;
   const status = (msg) => {
     if (onStatus) onStatus(msg);
   };
@@ -320,8 +322,6 @@ async function runUpload({
 
   status(`Uploading ${rows.length} tracks...`);
 
-  let uploadedCount = 0;
-  let allUploadsComplete = false;
   for (let i = 0; i < rows.length; i++) {
     ensureNotAborted(signal);
     const row = rows[i];
