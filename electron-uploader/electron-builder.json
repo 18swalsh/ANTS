@@ -4,12 +4,14 @@
   "directories": {
     "output": "dist"
   },
+  "asar": false,
   "files": [
-    "main.js",
-    "preload.js",
-    "core.js",
-    "package.json",
-    "renderer/**/*"
+    "**/*",
+    "!**/node_modules/**",
+    "!**/dist/**",
+    "!**/*.zip",
+    "!**/mac-build-package.zip",
+    "!**/_mac_build_stage/**"
   ],
   "mac": {
     "target": ["zip"],
