@@ -11,7 +11,8 @@
     "!**/*.zip",
     "!**/mac-build-package.zip",
     "!**/_mac_build_stage/**",
-    "!**/node_modules/playwright/.local-browsers/**"
+    "!**/node_modules/playwright/.local-browsers/**",
+    "!**/playwright-browsers/**"
   ],
   "mac": {
     "target": ["zip"],
@@ -22,7 +23,7 @@
   },
   "extraResources": [
     {
-      "from": "node_modules/playwright/.local-browsers",
+      "from": "playwright-browsers",
       "to": "playwright-browsers",
       "filter": ["**/*"]
     }
