@@ -21,11 +21,5 @@
   "win": {
     "target": ["zip"]
   },
-  "extraResources": [
-    {
-      "from": "playwright-browsers",
-      "to": "playwright-browsers",
-      "filter": ["**/*"]
-    }
-  ]
+  "extraResources": []
 }

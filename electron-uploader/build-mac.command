@@ -50,27 +50,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-npx playwright install chromium >>"$BUILD_LOG" 2>&1
-if [ $? -ne 0 ]; then
-  osascript -e 'display dialog "Build failed while installing Chromium.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
-  exit 1
-fi
-
-# Move Playwright browsers out of node_modules to avoid symlink copy errors
-if [ -d "node_modules/playwright/.local-browsers" ]; then
-  rm -rf "playwright-browsers"
-  mv "node_modules/playwright/.local-browsers" "playwright-browsers"
-fi
-
 npm run pack:mac >>"$BUILD_LOG" 2>&1
 if [ $? -ne 0 ]; then
   osascript -e 'display dialog "Build failed during packaging.\n\nSee log: '"$BUILD_LOG"'" buttons {"OK"} default button "OK" with icon caution'
   exit 1
-fi
-
-# Restore browsers into node_modules for future builds (optional)
-if [ -d "playwright-browsers" ] && [ ! -d "node_modules/playwright/.local-browsers" ]; then
-  mv "playwright-browsers" "node_modules/playwright/.local-browsers"
 fi
 
 osascript -e 'display dialog "Mac build complete.\n\nUse the ZIP in dist (ANTS Bandcamp Uploader-*.zip).\n\nLog: '"$BUILD_LOG"'" buttons {"OK"} default button "OK"'

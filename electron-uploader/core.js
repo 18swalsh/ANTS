@@ -193,7 +193,8 @@ async function runUpload({
   if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
     const resourcesPath = process.resourcesPath || '';
     if (resourcesPath && resourcesPath.includes('.app')) {
-      process.env.PLAYWRIGHT_BROWSERS_PATH = path.join(resourcesPath, 'playwright-browsers');
+      // No bundled browsers; use default cache path
+      process.env.PLAYWRIGHT_BROWSERS_PATH = '';
     } else {
       process.env.PLAYWRIGHT_BROWSERS_PATH = '0';
     }
@@ -205,7 +206,21 @@ async function runUpload({
     log('Browser launched.');
   } catch (err) {
     log(`Browser launch failed: ${err.message || err}`);
-    throw err;
+    // Attempt to install Chromium on first run
+    status('Downloading browser (first-time setup)...');
+    log('Attempting to install Chromium via Playwright...');
+    const { execFileSync } = require('child_process');
+    try {
+      execFileSync(process.execPath, [require.resolve('playwright/cli'), 'install', 'chromium'], {
+        stdio: 'inherit'
+      });
+      log('Chromium install complete, retrying launch...');
+      browser = await launchBrowser();
+      log('Browser launched after install.');
+    } catch (installErr) {
+      log(`Chromium install failed: ${installErr.message || installErr}`);
+      throw err;
+    }
   }
   const context = await browser.newContext({ viewport: null });
   const page = await context.newPage();
