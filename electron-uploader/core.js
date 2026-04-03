@@ -342,6 +342,7 @@ async function runUpload({
         const titleInputs = page.locator('input[name^="track.title_"], input[name^="track.track_title_"], input[name^="track_title_"], input.title');
         const artistInputs = page.locator('input[name^="track.artist_"], input[name^="track.track_artist_"], input[name^="track_artist_"]');
         const priceInputs = page.locator('input[name^="track.track_price_"], input[name^="track_price_"], input.price');
+        const trackPayMoreCheckboxes = page.locator('input[type="checkbox"][name^="track.nyp_"], input[name="track.nyp_"], input[data-test="name-your-price-checkbox"]');
         const beforeCount = await titleInputs.count();
 
         // direct hidden input
@@ -423,6 +424,17 @@ async function runUpload({
         const priceTarget = priceInputs.nth(newIndex);
         if (await priceTarget.count() > 0) {
           await priceTarget.fill('0');
+        }
+
+        // Ensure "let fans pay if they want" is checked for the track
+        const payMoreTarget = trackPayMoreCheckboxes.nth(newIndex);
+        if (await payMoreTarget.count() > 0) {
+          const checked = await payMoreTarget.isChecked().catch(() => false);
+          if (!checked) {
+            await payMoreTarget.check().catch(async () => {
+              await payMoreTarget.click({ force: true });
+            });
+          }
         }
 
         log(`Track added: ${title} / ${artist}`);
