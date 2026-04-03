@@ -467,11 +467,35 @@ async function runUpload({
           log(`Visible artist input after title: ${visibleArtistName || 'NONE'}`);
         } catch (_) {}
 
-        // Fill artist exactly like title (indexed, visible, fill)
-        const artistNode = artistInputs.nth(newIndex);
+        // Fill artist with enabled check + forced event dispatch + confirm value
+        const artistNode = page.locator(`input[name="track.artist_${newIndex}"]`).first();
         try {
           await artistNode.waitFor({ state: 'visible', timeout: 90000 });
+          // Wait until enabled/editable
+          try {
+            await page.waitForFunction(
+              (sel) => {
+                const el = document.querySelector(sel);
+                return !!el && !el.disabled && !el.readOnly;
+              },
+              `input[name="track.artist_${newIndex}"]`,
+              { timeout: 5000 }
+            );
+          } catch (_) {}
+
           await artistNode.fill(artist);
+          await page.evaluate(
+            ({ sel, val }) => {
+              const el = document.querySelector(sel);
+              if (!el) return;
+              el.value = val;
+              el.dispatchEvent(new Event('input', { bubbles: true }));
+              el.dispatchEvent(new Event('change', { bubbles: true }));
+            },
+            { sel: `input[name="track.artist_${newIndex}"]`, val: artist }
+          );
+          const currentVal = await artistNode.inputValue().catch(() => '');
+          log(`Artist value now: ${currentVal}`);
         } catch (_) {
           log(`Artist input not visible for index ${newIndex} (file ${fileName})`);
         }
