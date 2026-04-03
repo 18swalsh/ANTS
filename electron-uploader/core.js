@@ -412,8 +412,12 @@ async function runUpload({
         const titleTarget = titleInputs.nth(newIndex);
         await titleTarget.waitFor({ state: 'visible', timeout: 90000 });
 
-        const title = row.track_title || '';
         const artist = row.track_artist || '';
+        let title = row.track_title || '';
+        // If title is "Artist - Song", strip the artist prefix to keep song name only
+        if (artist && title.toLowerCase().startsWith(`${artist.toLowerCase()} - `)) {
+          title = title.slice(artist.length + 3);
+        }
 
         // Fill the newly created track fields explicitly by index (visible only)
         await titleTarget.fill(title);
